@@ -1,0 +1,73 @@
+A Machine Learning toolbox created by Miroslaw Horbal.
+
+The primary purpose for creating this toolbox is for my own education
+but anyone is free to use the code for their own projects. 
+
+This is not production grade software so use at your own risk. This code
+has not been optimized with speed in mind. There are better libraries out 
+there being created by some very gifted people. The Theano team has some
+wonderful tools available.
+
+If you find any bugs or have improvement suggestions please contact me
+at miroslaw@gmail.com
+
+I hope to add better documentation in the future. This code is pretty 
+much useless to untrained eyes without documenting the API. 
+
+Some Goals:
+- Unify terminolgy and syntax across all models
+- Provide a simple to extend generalized model baseclass that
+  is a mixin for any model that can be optimized with gradient decent/acent
+- Fix the many, many bugs and mathmatical errors that still exist 
+  (I'm looking at you gaussian RBM among others)
+- Improve DBN code... not even sure it works anymore
+- Add test cases... eventually
+- Add support for optimization libraries from scipy such as conjugate gradient
+  and LBFGS
+- Redesign data structures to work with SkLearn's awesome validation tools
+- Do a complete overhaul of the modelfn architechture... as I progress with
+  this toolbox I'm beginning to feel the limitations of my implementation
+
+Terminology:
+learn_rate: the learning rate / step size for gradient decent/acent 
+beta: the L2 penalty magnitude. Usually called lambda in many machine learning settings
+momentum: the momentum quantity for gradient decent
+verbose: takes values 0-2 with 0 being no verbosity, 2 max verbosity
+batch_size: the size of mini-batches when training (do not use batch_size of 1, cannot guaruntee things will work!)
+epochs: the number of passes over the data set
+trainfn: the RBM training function (ie: cdn, pcd, fpcd)
+
+Transformation functions / modelfns:
+linear: simple linear function
+NRLU: Noisy Rectified Linear Unit
+ReLU: Rectified Linear Unit
+binary/sigmoid: Logistic function
+tanh: Tanh function
+softmax: Softmax function
+
+Usage examples:
+import pandas as pd
+import numpy as np
+
+data = pandas.read_csv('data/mnist/train.csv')
+X = np.array(data.ix[:,1:] / 255.)
+Y = np.array(data.label)
+
+# RBM
+from rbm import RBM
+rbm = RBM(visible_size=784, hidden_size=500, batch_size=100, trainfn='fpcd', verbose=2) 
+rbm.train(X)
+
+# MLP (Multi-Layer Perceptron / Feed Forward Neural Net)
+import neurallayer as nl
+from mlp import MLP
+l1 = nl.MLPLayer(784, 500)
+l2 = nl.MLPLayer(500, 500, modelfn='ReLU')
+l3 = nl.TopLayer(errorfn='logerr', size_in=500, size_out=10)
+net = MLP([l1, l2, l3], verbose=2, batch_size=100)
+net.train(X, Y)
+
+# SparseFilter
+from sparsefilter import SparseFilter
+sf = SparseFilter(size_in=784, size_out=500, batch_size=100, verbose=2)
+sf.train(X)
